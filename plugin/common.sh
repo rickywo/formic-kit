@@ -40,6 +40,22 @@ relink_if_moved() {
   return 0
 }
 
+# The value of one key in the settings file that install.sh saves. Prints nothing when the
+# file or the key is missing. Always succeeds.
+saved_setting() {
+  local file="${FORMIC_KIT_STATE_DIR:-$HOME/.config/formic-kit}/config"
+  [ -f "$file" ] || return 0
+  awk -F= -v k="$1" '$1 == k { print substr($0, length(k) + 2); exit }' "$file"
+  return 0
+}
+
+# The runtime that runs the coordinator and the workers: opencode (the default) or claude.
+saved_runtime() {
+  local r
+  r="$(saved_setting runtime)"
+  printf '%s\n' "${r:-opencode}"
+}
+
 pause() {
   printf '\n%s' "Press Enter to close."
   read -r _ || true

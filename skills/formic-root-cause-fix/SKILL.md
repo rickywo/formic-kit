@@ -3,6 +3,7 @@ name: formic-root-cause-fix
 description: Execution style for formic-kit bug-fix tasks - reproduce, find the root cause, scan for siblings, add a regression test. Loaded by a worker on the execute step when the task fixes a defect.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Root-cause fix: bug-fix protocol

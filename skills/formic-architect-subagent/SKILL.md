@@ -3,6 +3,7 @@ name: formic-architect-subagent
 description: Software architecture subagent. Designs system structure, evaluates trade-offs, and makes scalability decisions.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Architect Subagent Skill - Architectural Analysis

@@ -3,6 +3,7 @@ name: formic-build-resolver
 description: Build and TypeScript error resolution subagent. Fixes compilation errors with minimal changes.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Build Resolver Skill - Compilation Error Resolution

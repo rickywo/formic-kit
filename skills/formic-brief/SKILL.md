@@ -3,6 +3,7 @@ name: formic-brief
 description: Worker step for formic-kit. Writes the feature specification (README.md) for one task into its task folder.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Brief: write the task specification

@@ -3,6 +3,7 @@ name: formic-prototype
 description: Rapid spike / prototype. Prioritises speed and learning over code quality. Output is disposable.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Prototype Skill - Rapid Spike Implementation

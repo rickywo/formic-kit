@@ -1,0 +1,4 @@
+{"type": "user", "message": {"role": "user", "content": "Task t-1. Do the step."}, "cwd": "/tmp/proj", "sessionId": "sess"}
+{"type": "assistant", "message": {"role": "assistant", "model": "test-model-1", "content": [{"type": "thinking", "thinking": "hm"}, {"type": "tool_use", "id": "tu1", "name": "Read", "input": {"file_path": "a.txt"}}]}, "cwd": "/tmp/proj", "sessionId": "sess"}
+{"type": "user", "message": {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "tu1", "content": "ok"}]}, "cwd": "/tmp/proj", "sessionId": "sess"}
+{"type": "assistant", "message": {"role": "assistant", "model": "test-model-1", "content": [{"type": "tool_use", "id": "tu1", "name": "Read", "input": {"file_path": "a.txt"}}]}, "cwd": "/tmp/proj", "sessionId": "sess"}

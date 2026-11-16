@@ -3,6 +3,7 @@ name: formic-execute
 description: Worker step for formic-kit. Implements one task by working through its plan and subtasks (or, for a quick task, directly from TASK.md), updating subtasks.json as it goes.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Execute: implement the task

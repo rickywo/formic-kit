@@ -59,7 +59,7 @@ Long text such as a task context goes in a file and is passed with `--context-fi
 | `parentGoalId`, `childTaskIds` | Links between a goal and the tasks it was split into |
 | `fixForTaskId` | Set when this task fixes another; fix tasks run first |
 | `declaredFiles`, `leases` | Files the task declared, and the ones it currently holds. Set by `lease acquire` |
-| `agent` | The worker on the current step: herdr name, pane id, opencode session id, step, tier. `null` when no step is running |
+| `agent` | The worker on the current step: herdr name, pane id, worker session id, step, tier. `null` when no step is running |
 | `safePointCommit` | The git commit made just before the task first ran |
 | `retryCount`, `yieldCount`, `executeRounds` | Counters. Reset when a task is queued from `todo` or `blocked` |
 | `yieldReason` | Why the task was last sent back or parked |

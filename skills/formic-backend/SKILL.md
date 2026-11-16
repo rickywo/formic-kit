@@ -3,6 +3,7 @@ name: formic-backend
 description: Backend-only implementation stream. Builds API routes, services, data models, and business logic.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Backend Skill - Server-Side Implementation Stream

@@ -3,6 +3,7 @@ name: formic-security-reviewer
 description: Security review subagent. Scans for vulnerabilities, validates input handling, and checks authentication.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Security Reviewer Skill - Security Audit

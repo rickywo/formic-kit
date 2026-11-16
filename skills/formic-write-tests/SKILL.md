@@ -3,6 +3,7 @@ name: formic-write-tests
 description: Writes failing test cases first without implementing feature code. Follows TDD red-phase discipline.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Write Tests Skill - TDD Red Phase

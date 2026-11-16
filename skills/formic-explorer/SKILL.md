@@ -3,6 +3,7 @@ name: formic-explorer
 description: Codebase exploration subagent. Systematically maps directory structures, patterns, and dependencies.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Explorer Skill - Systematic Codebase Exploration

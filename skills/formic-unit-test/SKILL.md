@@ -3,6 +3,7 @@ name: formic-unit-test
 description: Generates and improves unit tests until a configurable coverage threshold is met
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Unit Test Generation

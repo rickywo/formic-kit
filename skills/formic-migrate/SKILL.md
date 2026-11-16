@@ -3,6 +3,7 @@ name: formic-migrate
 description: Executes a migration — renames, moves, or restructures code according to the plan.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Migrate Skill - Execute Code Migration

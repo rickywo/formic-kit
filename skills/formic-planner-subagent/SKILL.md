@@ -3,6 +3,7 @@ name: formic-planner-subagent
 description: Implementation planning subagent. Breaks down architectural designs into concrete, ordered implementation steps.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Planner Subagent Skill - Detailed Implementation Planning

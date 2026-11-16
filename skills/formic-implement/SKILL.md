@@ -3,6 +3,7 @@ name: formic-implement
 description: Focused implementation node. Reads task docs and writes production code following the plan.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Implement Skill - Focused Code Implementation

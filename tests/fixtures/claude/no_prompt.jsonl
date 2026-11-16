@@ -1,0 +1,3 @@
+{"type": "permission-mode", "permissionMode": "default", "sessionId": "sess"}
+{"type": "user", "message": {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "tu1", "content": "ok"}]}, "cwd": "/tmp/proj", "sessionId": "sess"}
+{"type": "assistant", "message": {"role": "assistant", "model": "test-model-1", "content": [{"type": "text", "text": "DONE not a real run"}]}, "cwd": "/tmp/proj", "sessionId": "sess"}

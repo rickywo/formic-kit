@@ -3,6 +3,7 @@ name: formic-plan
 description: Worker step for formic-kit. Writes the implementation plan (PLAN.md) and the subtask list (subtasks.json) for one task from its specification.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Plan: write the implementation plan and subtasks

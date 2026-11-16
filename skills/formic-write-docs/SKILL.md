@@ -3,6 +3,7 @@ name: formic-write-docs
 description: Writes or updates project documentation based on exploration findings. Produces READMEs, API references, and guides.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Write Docs Skill - Documentation Author
