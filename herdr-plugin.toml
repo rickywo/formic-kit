@@ -1,0 +1,71 @@
+id = "formic.kit"
+name = "Formic Kit"
+version = "0.1.0"
+min_herdr_version = "0.9.5"
+description = "Task board run by a coordinator agent and opencode worker agents: skills, agent profiles, a board viewer and setup."
+platforms = ["linux", "macos"]
+
+# Repoint the skill links at this copy of the plugin after an install or update.
+# Does nothing until setup has been run once.
+[[startup]]
+command = ["bash", "plugin/relink.sh"]
+
+[[actions]]
+id = "setup"
+title = "Formic: set up this machine (skills and agents)"
+contexts = ["workspace"]
+command = ["bash", "plugin/open.sh", "setup"]
+
+[[actions]]
+id = "init"
+title = "Formic: set up the board in this project"
+contexts = ["workspace"]
+command = ["bash", "plugin/open.sh", "init"]
+
+[[actions]]
+id = "doctor"
+title = "Formic: check the installation"
+contexts = ["workspace"]
+command = ["bash", "plugin/open.sh", "doctor"]
+
+[[actions]]
+id = "board"
+title = "Formic: show the task board"
+contexts = ["workspace"]
+command = ["bash", "plugin/open.sh", "board"]
+
+[[actions]]
+id = "coordinator"
+title = "Formic: start the coordinator in this project"
+contexts = ["workspace"]
+command = ["bash", "plugin/coordinator.sh"]
+
+[[panes]]
+id = "setup"
+title = "Formic setup"
+placement = "popup"
+width = "80%"
+height = "80%"
+command = ["bash", "plugin/setup.sh"]
+
+[[panes]]
+id = "init"
+title = "Formic project setup"
+placement = "popup"
+width = "80%"
+height = "60%"
+command = ["bash", "plugin/init.sh"]
+
+[[panes]]
+id = "doctor"
+title = "Formic doctor"
+placement = "popup"
+width = "80%"
+height = "80%"
+command = ["bash", "plugin/doctor.sh"]
+
+[[panes]]
+id = "board"
+title = "Formic board"
+placement = "overlay"
+command = ["bash", "plugin/board.sh"]

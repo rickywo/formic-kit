@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "guidelineFile": null,
+  "commands": {
+    "typecheck": null,
+    "build": null,
+    "test": null,
+    "extraTests": []
+  },
+  "forbiddenPatterns": [],
+  "manualChecks": [],
+  "sharedFiles": [],
+  "limits": {
+    "maxConcurrentTasks": 1,
+    "maxExecuteRounds": 5,
+    "stallRounds": 2,
+    "maxRetries": 3,
+    "maxYields": 5
+  }
+}
