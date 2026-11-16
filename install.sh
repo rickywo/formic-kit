@@ -278,8 +278,12 @@ cmd_doctor() {
 
   say "Agents"
   if command -v opencode >/dev/null; then
-    local list a
-    list="$(OPENCODE_CONFIG_DIR="$CONFIG_DIR" opencode agent list 2>/dev/null || true)"
+    # Write the list to a file: opencode cuts long output short when it is written to a pipe.
+    local list a listfile
+    listfile="$(mktemp)"
+    OPENCODE_CONFIG_DIR="$CONFIG_DIR" opencode agent list > "$listfile" 2>/dev/null || true
+    list="$(grep -E '^[A-Za-z0-9_/-]+ \(' "$listfile" || true)"
+    rm -f "$listfile"
     for a in worker-haiku worker-sonnet; do
       if grep -q "^$a " <<< "$list"; then
         local f="$CONFIG_DIR/agents/$a.md" m=""

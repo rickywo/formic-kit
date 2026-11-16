@@ -15,8 +15,10 @@ A worker is a fresh opencode agent in its own herdr pane. It knows nothing about
 
 ```bash
 test "${HERDR_ENV:-}" = 1 && echo inside-herdr
-opencode agent list | grep -E '^worker-(haiku|sonnet)'
+opencode agent list > /tmp/formic-agents.txt 2>/dev/null; grep -E '^worker-(haiku|sonnet)' /tmp/formic-agents.txt
 ```
+
+Write the agent list to a file as shown. opencode cuts long output short when it is piped, which can hide the worker agents.
 
 If you are not inside herdr, or either worker agent is missing, stop and tell the user. Do not fall back to another way of running workers without asking.
 
