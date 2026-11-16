@@ -49,7 +49,7 @@ Repeat until there is nothing left to run:
 3. **Run it** through the steps for its type, until it reaches `review`, is parked in `todo`, or goes back to `queued`.
 4. Tell the user the outcome in one or two lines, then go to 1.
 
-Stop the loop and talk to the user when: the queue is empty; a task was parked; a worker reported `BLOCKED`; a permission prompt appeared; or anything about the board looks wrong. If the user asked for one specific task, run only that task.
+Stop the loop and talk to the user when: the queue is empty; a task was parked; a worker reported `BLOCKED`; a permission prompt appeared; the model provider's credentials were rejected; a brief could not be delivered twice in a row; or anything about the board looks wrong. If the user asked for one specific task, run only that task.
 
 ## Pick the next task
 
@@ -95,7 +95,9 @@ For each step: move the task to the step's status with `board move`, dispatch th
 | `DONE`, but an output check fails | Treat as `FAILED`, with the failed check as the reason |
 | `PARTIAL` (execute only) | See "Execute rounds" |
 | `BLOCKED` | Show the user the worker's question, with the task id and step. When they answer, add the answer to the task context under a `## Clarifications` heading (`board set <id> --context-file ...`) and dispatch a new worker for the same step. This does not count as a retry |
-| `FAILED` or `NONE` | `board bump <id> retry --reason "<step>: <why>"`. If `retryCount` is now at `maxRetries`, park the task. Otherwise `board move <id> queued --note "<step> failed: <why>"` and let the loop pick it up again |
+| `NOT_DELIVERED`, or the brief was not delivered | Close the pane, clear the agent and dispatch a new worker for the same step, as in `formic-dispatch`. Not a retry. If the second brief is not delivered either, stop and tell the user |
+| `ERROR` with `errorKind` `credentials` | Stop the loop: the model provider's sign-in has expired. Follow `formic-dispatch` ("Read the report"): no retry, leave the task where it is, ask the user to sign in again, then dispatch the step again |
+| `FAILED`, `NONE`, or `ERROR` of another kind | `board bump <id> retry --reason "<step>: <why>"`. If `retryCount` is now at `maxRetries`, park the task. Otherwise `board move <id> queued --note "<step> failed: <why>"` and let the loop pick it up again |
 
 ### Output checks per step
 

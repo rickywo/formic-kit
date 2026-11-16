@@ -98,15 +98,23 @@ The input box shows the agent's name (for example `Worker-Sonnet`) once it is re
 board agent t-12 --name t12-plan --pane <pane-id> --step plan --tier sonnet
 ```
 
-**4. Send the brief and wait.**
+**4. Send the brief and wait.** Use the script, not `herdr agent prompt` directly:
 
 ```bash
-herdr agent prompt t12-plan "$(cat .formic/tasks/t-12_add-export-button/output/brief-plan.md)" --wait --timeout 1800000
+bash <this skill's folder>/scripts/send_brief.sh t12-plan .formic/tasks/t-12_add-export-button/output/brief-plan.md 1800000
 ```
 
-The command blocks until the worker stops. Give your shell tool a timeout longer than the `--timeout` value. Use 30 minutes (1800000) for brief, plan, declare, verify and architect, and 60 minutes for execute, unless `.formic/project.json` says otherwise.
+The script sends the brief, checks within a minute that it arrived, then waits until the worker stops. A brief can be lost without herdr noticing: the worker then sits idle with no session while a plain `herdr agent prompt --wait` keeps waiting until its timeout. A worker gets a session as soon as it receives its first message, so the script treats "no session after 60 seconds" as not delivered.
 
-Read `.result.agent.agent_status` from the response:
+Give your shell tool a timeout longer than the last argument. Use 30 minutes (1800000) for brief, plan, declare, verify and architect, and 60 minutes for execute, unless `.formic/project.json` says otherwise.
+
+It prints one line of JSON. If `delivered` is `false` (exit code 3), the brief never arrived:
+
+1. Read the pane (`herdr agent read <name> --source visible`) in case it shows why, close the pane and clear the agent on the board.
+2. Dispatch the step once more with a new worker and a new name. This does not count as a retry.
+3. If the second brief is not delivered either, stop and tell the user. Something is wrong with herdr or opencode on this machine, and more attempts will not help.
+
+If `delivered` is `true`, read `status`:
 
 | Result | Meaning | What to do |
 |---|---|---|
@@ -121,7 +129,22 @@ Read `.result.agent.agent_status` from the response:
 python3 <this skill's folder>/scripts/worker_report.py t12-plan
 ```
 
-It prints JSON: `verdict` (`DONE`, `PARTIAL`, `BLOCKED`, `FAILED`, or `NONE` if the message did not start with one of those), `message` (the worker's exact final message), `agent`, `model` and `sessionId`.
+It prints JSON: `verdict`, `message` (the worker's exact final message), `agent`, `model`, `sessionId`, `error` and `errorKind`.
+
+| `verdict` | Meaning |
+|---|---|
+| `DONE`, `PARTIAL`, `BLOCKED`, `FAILED` | The first word of the worker's final message |
+| `NONE` | The message did not start with one of those words |
+| `ERROR` | The turn ended with an error instead of a message. `error` holds the error text |
+| `NOT_DELIVERED` | The worker has no session: it never received its brief. Handle it as in step 4 |
+
+**If `errorKind` is `credentials`, stop the run.** The model provider rejected the sign-in, for example "The security token included in the request is expired" or "Could not load credentials from any providers". This is not the task's fault, and every new worker will fail the same way until the user signs in again. Do not count a retry and do not dispatch anything else:
+
+1. Close the pane and clear the agent on the board. Leave the task in its current status.
+2. Tell the user that the provider's credentials have expired or are missing, quote the error, and ask them to sign in again.
+3. When they say they have, dispatch the same step again with a new worker.
+
+If your own requests start failing in the same way, you cannot do anything about it; the user will see the error in your pane.
 
 Check that `agent` is the worker you asked for. If it is not, the step ran under the wrong profile; treat it as failed and tell the user.
 

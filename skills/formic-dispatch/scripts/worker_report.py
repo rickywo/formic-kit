@@ -7,12 +7,27 @@ Usage: worker_report.py <herdr-agent-name-or-pane-id>
 Reads the session through `opencode export`, which returns the message exactly
 as written. Reading the terminal instead would give text wrapped at the pane
 width. Python 3.8+, standard library only.
+
+verdict is the first word of the final message (DONE, PARTIAL, BLOCKED, FAILED), or:
+  NONE           the message did not start with one of those words
+  ERROR          the turn ended with an error instead of a message; see "error" and
+                 "errorKind" ("credentials" means the model provider rejected the sign-in)
+  NOT_DELIVERED  the worker has no session, so it never received its brief
 """
 
 import json
+import re
 import subprocess
 import sys
 import tempfile
+
+
+CREDENTIAL_PATTERNS = re.compile(
+    r"security token included in the request is (expired|invalid)"
+    r"|ExpiredToken|credential provider failed|Could not load credentials"
+    r"|UnrecognizedClient|InvalidClientTokenId|token has expired|SSO session",
+    re.IGNORECASE,
+)
 
 
 def fail(msg):
@@ -26,8 +41,6 @@ def session_for(target):
         fail(f"herdr agent get {target} failed: {r.stderr.strip() or r.stdout.strip()}")
     agent = json.loads(r.stdout)["result"]["agent"]
     sess = (agent.get("agent_session") or {}).get("value")
-    if not sess:
-        fail(f"agent {target} has no session yet; it has not been prompted")
     return sess, agent.get("agent_status")
 
 
@@ -37,6 +50,14 @@ def main():
         sess, status = args[1], None
     elif len(args) == 1:
         sess, status = session_for(args[0])
+        if not sess:
+            print(json.dumps({
+                "sessionId": None,
+                "agentStatus": status,
+                "verdict": "NOT_DELIVERED",
+                "message": "the worker has no session: it never received a brief",
+            }, indent=2))
+            return
     else:
         fail("usage: worker_report.py <agent-name> | --session <session-id>")
 
@@ -63,6 +84,14 @@ def main():
     if verdict not in ("DONE", "PARTIAL", "BLOCKED", "FAILED"):
         verdict = "NONE"
 
+    err = info.get("error") or {}
+    err_msg = ((err.get("data") or {}).get("message") or err.get("name") or "") if err else ""
+    err_kind = None
+    if err_msg:
+        err_kind = "credentials" if CREDENTIAL_PATTERNS.search(err_msg) else "other"
+        if verdict == "NONE":
+            verdict = "ERROR"
+
     print(json.dumps({
         "sessionId": sess,
         "agentStatus": status,
@@ -70,6 +99,8 @@ def main():
         "model": info.get("modelID"),
         "verdict": verdict,
         "message": text or "(the last turn ended with no final message)",
+        "error": err_msg or None,
+        "errorKind": err_kind,
     }, indent=2))
 
 
