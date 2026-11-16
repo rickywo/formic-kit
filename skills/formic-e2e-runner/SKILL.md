@@ -3,6 +3,7 @@ name: formic-e2e-runner
 description: End-to-end testing subagent. Writes and runs Playwright or similar E2E tests for critical user flows.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # E2E Runner Skill - End-to-End Testing

@@ -14,6 +14,10 @@ echo "  $project"
 echo
 echo "This creates .formic/board.json and .formic/project.json if they are absent and"
 echo "adds a short section to AGENTS.md. An existing board is never changed."
+if [ "$(saved_runtime)" = "claude" ]; then
+  echo "Claude Code reads CLAUDE.md, not AGENTS.md, so this also creates a CLAUDE.md"
+  echo "containing @AGENTS.md if the project has none. An existing CLAUDE.md is left alone."
+fi
 printf '\nContinue? [y/N] '
 read -r answer || answer=""
 case "$answer" in

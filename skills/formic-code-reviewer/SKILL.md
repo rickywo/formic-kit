@@ -3,6 +3,7 @@ name: formic-code-reviewer
 description: Expert code review subagent. Reviews code for quality, correctness, security, and adherence to project standards.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Code Reviewer Skill - Expert Code Review

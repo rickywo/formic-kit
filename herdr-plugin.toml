@@ -2,7 +2,7 @@ id = "formic.kit"
 name = "Formic Kit"
 version = "0.1.0"
 min_herdr_version = "0.9.5"
-description = "Task board run by a coordinator agent and opencode worker agents: skills, agent profiles, a board viewer and setup."
+description = "Task board run by a coordinator agent and worker agents on opencode or Claude Code: skills, agent profiles, a board viewer and setup."
 platforms = ["linux", "macos"]
 
 # Repoint the skill links at this copy of the plugin after an install or update.
@@ -12,7 +12,7 @@ command = ["bash", "plugin/relink.sh"]
 
 [[actions]]
 id = "setup"
-title = "Formic: set up this machine (skills and agents)"
+title = "Formic: set up this machine (opencode or Claude Code)"
 contexts = ["workspace"]
 command = ["bash", "plugin/open.sh", "setup"]
 

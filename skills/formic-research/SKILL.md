@@ -3,6 +3,7 @@ name: formic-research
 description: Read-only codebase exploration and discovery. Systematically gathers context without making changes.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Research Skill - Codebase Exploration & Discovery

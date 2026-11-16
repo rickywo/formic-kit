@@ -3,6 +3,7 @@ name: formic-fix-tests
 description: Updates existing tests affected by code changes. Fixes broken assertions, updates mocks, and adds migration-specific tests.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Fix Tests Skill - Update Tests After Code Changes

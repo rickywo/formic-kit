@@ -1,0 +1,3 @@
+{"type": "user", "message": {"role": "user", "content": "Task t-1. Do the step."}, "cwd": "/tmp/proj", "sessionId": "sess"}
+{"type": "assistant", "isApiErrorMessage": true, "error": "api_error", "message": {"role": "assistant", "model": "<synthetic>", "content": [{"type": "text", "text": "API Error (test/model): 500 overloaded"}]}, "cwd": "/tmp/proj", "sessionId": "sess"}
+{"type": "assistant", "message": {"role": "assistant", "model": "test-model-1", "content": [{"type": "text", "text": "BLOCKED need an answer"}]}, "cwd": "/tmp/proj", "sessionId": "sess"}

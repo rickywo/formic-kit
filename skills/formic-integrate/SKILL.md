@@ -3,6 +3,7 @@ name: formic-integrate
 description: Wires together parallel streams. Connects frontend to backend, verifies API contracts, and fixes integration issues.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Integrate Skill - Wire Parallel Streams Together

@@ -1,0 +1,2 @@
+{"type": "user", "message": {"role": "user", "content": [{"type": "text", "text": "Task t-1.\nDo the step."}]}, "cwd": "/tmp/proj", "sessionId": "sess"}
+{"type": "assistant", "message": {"role": "assistant", "model": "test-model-1", "content": [{"type": "text", "text": "DONE\nlisted"}]}, "cwd": "/tmp/proj", "sessionId": "sess"}

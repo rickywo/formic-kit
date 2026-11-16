@@ -3,6 +3,7 @@ name: formic-quality-gate
 description: Worker step for formic-kit. Checks one executed task with real evidence - diff, type check, tests, forbidden-practice scan, acceptance criteria - and writes QUALITY.md with a PASS or FAIL verdict. Changes no code.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Quality gate: check the task with evidence

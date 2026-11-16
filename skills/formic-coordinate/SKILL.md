@@ -19,7 +19,7 @@ Load `formic-board` (the board tool and its rules) and `formic-dispatch` (how to
 
 ## Start-up
 
-1. Confirm the prerequisites in `formic-dispatch` ("Before the first dispatch"), and that the project is a git repository.
+1. Read the runtime as `formic-dispatch` ("Which runtime") describes. It applies to every tool-specific step for the whole session. Confirm the prerequisites in `formic-dispatch` ("Before the first dispatch") for that runtime, and that the project is a git repository.
 2. `board validate`. If it fails, stop and tell the user what it reported.
 3. Read `.formic/project.json` for `limits`. If the file is missing, tell the user that the project's check commands are not configured and that verification will be weak without them; ask whether to continue. Defaults when a limit is absent: `maxExecuteRounds` 5, `stallRounds` 2, `maxRetries` 3, `maxYields` 5.
 4. Recover (next section).
@@ -35,7 +35,7 @@ A task in an active status with nobody working on it is left over from an interr
 |---|---|
 | An `agent` is recorded and `herdr agent get <name>` shows it `working` | A worker is still on it. Wait with `herdr agent wait <name>`, then carry on from "Read the report" in `formic-dispatch` |
 | An `agent` is recorded and it is `idle` or `done` | The worker finished while nobody was watching. Read its report and carry on from there |
-| An `agent` is recorded and it is `blocked` | Handle the permission prompt as in `formic-dispatch` |
+| An `agent` is recorded and it is `blocked` | Handle the permission prompt or startup dialog as in `formic-dispatch` for the runtime |
 | No agent recorded, or herdr does not know the name | The step was interrupted. `board bump <id> retry --reason "interrupted during <step>"`, then `board move <id> queued --note "recovered"`. If that takes `retryCount` to `maxRetries`, park it instead (see "Parking") |
 
 Tell the user what you recovered.
@@ -49,7 +49,7 @@ Repeat until there is nothing left to run:
 3. **Run it** through the steps for its type, until it reaches `review`, is parked in `todo`, or goes back to `queued`.
 4. Tell the user the outcome in one or two lines, then go to 1.
 
-Stop the loop and talk to the user when: the queue is empty; a task was parked; a worker reported `BLOCKED`; a permission prompt appeared; the model provider's credentials were rejected; a brief could not be delivered twice in a row; or anything about the board looks wrong. If the user asked for one specific task, run only that task.
+Stop the loop and talk to the user when: the queue is empty; a task was parked; a worker reported `BLOCKED`; a permission prompt appeared; a startup dialog is showing in a worker pane; the provider's sign-in was rejected; a brief could not be delivered twice in a row; or anything about the board looks wrong. If the user asked for one specific task, run only that task.
 
 ## Pick the next task
 
@@ -96,7 +96,7 @@ For each step: move the task to the step's status with `board move`, dispatch th
 | `PARTIAL` (execute only) | See "Execute rounds" |
 | `BLOCKED` | Show the user the worker's question, with the task id and step. When they answer, add the answer to the task context under a `## Clarifications` heading (`board set <id> --context-file ...`) and dispatch a new worker for the same step. This does not count as a retry |
 | `NOT_DELIVERED`, or the brief was not delivered | Close the pane, clear the agent and dispatch a new worker for the same step, as in `formic-dispatch`. Not a retry. If the second brief is not delivered either, stop and tell the user |
-| `ERROR` with `errorKind` `credentials` | Stop the loop: the model provider's sign-in has expired. Follow `formic-dispatch` ("Read the report"): no retry, leave the task where it is, ask the user to sign in again, then dispatch the step again |
+| `ERROR` with `errorKind` `credentials` | Stop the loop: the provider's sign-in has expired or is missing, whichever tool. Follow `formic-dispatch` ("Read the report"): no retry, leave the task where it is, ask the user to sign in again, then dispatch the step again |
 | `FAILED`, `NONE`, or `ERROR` of another kind | `board bump <id> retry --reason "<step>: <why>"`. If `retryCount` is now at `maxRetries`, park the task. Otherwise `board move <id> queued --note "<step> failed: <why>"` and let the loop pick it up again |
 
 ### Output checks per step
@@ -131,7 +131,7 @@ board lease <id> acquire
 
 Before each execute dispatch: `board bump <id> round`, and count the subtasks in `subtasks.json` that are `completed` or `skipped`.
 
-For a task that fixes a bug (it has `fixForTaskId`, or its context says it is a bug fix), put `Also load: formic-root-cause-fix` in the brief.
+For a task that fixes a bug (it has `fixForTaskId`, or its context says it is a bug fix), put `Also load: formic-root-cause-fix` in the brief. In a Claude Code brief write it `Also load: /formic-root-cause-fix`, with the slash (see the brief template in `formic-dispatch`).
 
 After the worker returns `DONE` or `PARTIAL`, count again:
 

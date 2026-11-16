@@ -3,6 +3,7 @@ name: formic-analyze-feedback
 description: Reads review comments and categorises each piece of feedback by type and severity before code changes.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Analyze Feedback Skill - Review Comment Triage

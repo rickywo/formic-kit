@@ -3,6 +3,7 @@ name: formic-impact-analysis
 description: Analyses the blast radius of a change. Maps affected files, modules, tests, and downstream consumers.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Impact Analysis Skill - Change Blast Radius Assessment

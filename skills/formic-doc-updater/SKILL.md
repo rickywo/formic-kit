@@ -3,6 +3,7 @@ name: formic-doc-updater
 description: Documentation update subagent. Keeps documentation in sync with code changes.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Doc Updater Skill - Documentation Synchronisation

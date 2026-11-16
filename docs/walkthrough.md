@@ -9,7 +9,12 @@ herdr plugin install rickywo/formic-kit
 herdr plugin action invoke formic.kit.setup
 ```
 
-Setup asks for three model ids in opencode's `provider/model` form: one for the coordinator, one for the mid-tier worker and one for the low-cost worker. `opencode models` lists the ids. On later runs, press Enter to keep the saved values. Setup ends with a check of the installation, which should finish with "All required checks passed."
+Setup first asks which runtime to use: `opencode` or `claude` (Claude Code). One tool runs the coordinator and the workers; `opencode` is the default. Then it asks for three model ids: one for the coordinator, one for the mid-tier worker and one for the low-cost worker.
+
+- **opencode:** ids use the `provider/model` form, and `opencode models` lists them.
+- **Claude Code:** ids have no provider prefix; use the ids that `claude --model` accepts. The coordinator id is optional.
+
+The two sets are saved separately. On later runs, press Enter to keep the saved values. Setup ends with a check of the installation, which should finish with "All required checks passed."
 
 ## 1. Set up the project (once per project)
 
@@ -19,7 +24,7 @@ In herdr, go to a pane inside the project, for example `~/code/notes-api`, and r
 herdr plugin action invoke formic.kit.init
 ```
 
-Answer `y`. This creates `.formic/board.json` and `.formic/project.json`, and adds a short section to `AGENTS.md`.
+Answer `y`. This creates `.formic/board.json` and `.formic/project.json`, and adds a short section to `AGENTS.md`. With Claude Code it also creates a `CLAUDE.md` containing `@AGENTS.md`, because Claude Code reads that file instead of `AGENTS.md`.
 
 Then fill in `.formic/project.json`. The quality gate runs these commands to check every task, so this step matters:
 
@@ -51,7 +56,9 @@ Then fill in `.formic/project.json`. The quality gate runs these commands to che
 herdr plugin action invoke formic.kit.coordinator
 ```
 
-A new pane opens beside the focused one, running opencode as the coordinator on your strongest model. You talk to this pane from now on. There is one coordinator per herdr workspace; running the action again focuses the existing one.
+A new pane opens beside the focused one, running the coordinator agent of your runtime (opencode or Claude Code) on your strongest model. You talk to this pane from now on. There is one coordinator per herdr workspace; running the action again focuses the existing one.
+
+With Claude Code, the first start in a project shows "Do you trust this folder?" in the new pane, and the action reports that Claude Code did not become ready. Answer the question in that pane yourself, then run the action again. The kit never answers it for you.
 
 ## 3. Describe the work
 
@@ -100,7 +107,7 @@ herdr plugin action invoke formic.kit.board
 The coordinator stops and asks you in three situations:
 
 - **A worker has a question.** For example: "Should search include archived notes?" Your answer is added to the task, and a new worker carries on. This does not count as a retry.
-- **A worker hits a permission prompt**, such as reading a file outside the project. The coordinator shows the request and asks whether to allow it once or reject it. It never answers a permission prompt on its own.
+- **A worker hits a permission prompt**, such as reading a file outside the project. The coordinator shows the request and asks whether to allow it once or reject it. It never answers a permission prompt on its own. With Claude Code, workers already run file edits, the project's check commands and read-only git commands without a prompt, so a prompt means something else was requested. The coordinator shows you the dialog in the same way, you choose to allow it once or reject it, and it sends the matching key. It never picks "allow always" (opencode) or Claude Code's second option, "Yes, and switch to accept edits".
 - **A task fails the gate three times.** The coordinator gives up on it for now, puts it back in `todo` with the reason, and tells you which checks failed. Before that, a task on the haiku tier that fails twice is moved up to sonnet.
 
 ## 6. Review
@@ -131,5 +138,6 @@ If you say re-run instead, the feedback is added to the task and the task goes b
 - **One task at a time.** Parallel runs are not built yet.
 - **Nothing is committed for you** apart from the "auto-save: before task" commit at the start of each task.
 - **If you close the coordinator mid-task**, start it again and say "run the queue". It finds the interrupted task and picks it up.
-- **The first opencode start in a new project takes about a minute.**
+- **With opencode, the first start in a new project takes about a minute.** This applies to opencode only.
+- **With Claude Code, the first start in a folder asks "Do you trust this folder?".** Answer it in the pane yourself. The kit does not change your Claude Code settings.
 - **Never edit `.formic/board.json` by hand.** Ask the coordinator, which changes the board only through the kit's board tool.

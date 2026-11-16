@@ -3,6 +3,7 @@ name: formic-tdd-guide
 description: Test-Driven Development subagent. Writes failing tests first, then implements minimum code to pass.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # TDD Guide Skill - Test-Driven Development

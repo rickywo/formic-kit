@@ -3,6 +3,7 @@ name: formic-refactor-cleaner
 description: Dead code cleanup and consolidation subagent. Removes unused code, reduces duplication, and simplifies structure.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Refactor Cleaner Skill - Dead Code Cleanup & Consolidation

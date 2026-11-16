@@ -3,6 +3,7 @@ name: formic-declare
 description: Worker step for formic-kit. Reads one task's plan and writes declared-files.json, the list of files the task will create or modify, used for file leases.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Declare: list the files this task will change

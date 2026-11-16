@@ -3,6 +3,7 @@ name: formic-frontend
 description: Frontend-only implementation stream. Builds UI components, views, styles, and client-side logic.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Frontend Skill - Client-Side Implementation Stream

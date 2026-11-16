@@ -3,6 +3,7 @@ name: formic-architect
 description: Worker step for formic-kit. Breaks one goal task into 3 to 8 child tasks and writes architect-output.json. Writes no implementation code.
 metadata:
   opencode/autoinvoke: false
+disable-model-invocation: true
 ---
 
 # Architect: break a goal into tasks
