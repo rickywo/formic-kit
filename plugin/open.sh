@@ -4,6 +4,7 @@ set -euo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 entry="${1:?usage: open.sh <setup|init|doctor|board>}"
+relink_if_moved
 project="$(project_root "$(context_dir)")"
 exec "$HERDR" plugin pane open --plugin "${HERDR_PLUGIN_ID:-formic.kit}" --entrypoint "$entry" \
   --env "FORMIC_PROJECT=$project"

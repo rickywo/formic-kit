@@ -3,6 +3,7 @@
 set -euo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
+relink_if_moved
 project="$(project_root "$(context_dir)")"
 [ -n "$project" ] || { echo "could not tell which project the focused pane is in" >&2; exit 1; }
 [ -f "$project/.formic/board.json" ] || { echo "no .formic/board.json in $project; run the init action first" >&2; exit 1; }

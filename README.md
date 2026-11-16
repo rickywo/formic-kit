@@ -4,42 +4,58 @@ Skills that run a task board with a coordinator agent and worker agents, for ope
 
 A coordinator session (your strongest model) owns the board at `<project>/.formic/board.json` and hands each step of a task to a worker (`worker-sonnet` or `worker-haiku`) running in its own herdr pane. Workers share context through the task folder, `.formic/tasks/<id>_<slug>/`.
 
-Status: work in progress. Tasks run one at a time; parallel runs are not built yet.
+Status: 0.1.0, work in progress. Tasks run one at a time; parallel runs are not built yet, and goal tasks (splitting a large goal into child tasks) are written but untested.
+
+## Requirements
+
+- [herdr](https://herdr.dev) 0.9.5 or later, with its opencode integration: `herdr integration install opencode`
+- [opencode](https://opencode.ai), with a model provider set up
+- Python 3.8 or later, git, bash
+- macOS or Linux
 
 ## Install
 
-On each machine, after installing opencode and herdr and setting up your model provider:
-
 ```bash
-git clone <this repository> && cd formic-kit
-./install.sh --coordinator-model <provider/model> --sonnet-model <provider/model> --haiku-model <provider/model>
-herdr integration install opencode
-./install.sh doctor
+herdr plugin install rickywo/formic-kit
 ```
 
-`install` links the skills into `~/.config/opencode/skills` and writes three agent profiles into `~/.config/opencode/agents`: `worker-haiku`, `worker-sonnet` and `formic-coordinator`. It leaves any file it did not create alone unless you pass `--force`. `opencode models` lists the model ids.
-
-In each project:
+**Installing the plugin does not set anything up yet. Run the setup action next:**
 
 ```bash
-<kit>/install.sh init .
+herdr plugin action invoke formic.kit.setup
 ```
 
-Then fill in the check commands in `.formic/project.json`, start opencode inside herdr in the project, and ask it to create a task or run the queue. `opencode --agent formic-coordinator` starts the session on the coordinator model.
+Setup asks for three model ids in opencode's `provider/model` form (`opencode models` lists them): one for the coordinator, one for the mid-tier worker and one for the low-cost worker. It then:
 
-To update, `git pull`; rerun `./install.sh` only if the agent templates changed. `./install.sh uninstall` removes what install created.
+- links the kit's skills into `~/.config/opencode/skills`;
+- writes three agent profiles into `~/.config/opencode/agents`: `formic-coordinator`, `worker-sonnet` and `worker-haiku`;
+- runs a check of the installation.
 
-## herdr plugin
+It leaves any file it did not create alone. If you already have agents named `worker-sonnet` or `worker-haiku`, they are kept as they are.
 
-The kit is also a herdr plugin (`herdr-plugin.toml`). Install it with `herdr plugin install <owner>/<repo>` once the repository is on GitHub, or from a local clone with `herdr plugin link <path>`. It adds five actions, which you can run with `herdr plugin action invoke formic.kit.<id>` or bind to keys:
+## Use it in a project
+
+From a herdr pane inside the project (a git repository):
+
+1. `herdr plugin action invoke formic.kit.init` creates `.formic/board.json` and `.formic/project.json` and adds a short section to `AGENTS.md`.
+2. Fill in `.formic/project.json`: the type-check, build and test commands, and the project's guideline file. The quality gate runs these commands.
+3. `herdr plugin action invoke formic.kit.coordinator` starts a coordinator agent beside the focused pane.
+4. Ask the coordinator to create a task, then to run the queue. It starts workers in new panes, checks what they produce, and moves tasks to review.
+5. `herdr plugin action invoke formic.kit.board` shows the board. Ask the coordinator to review the tasks waiting for you.
+
+The first opencode start in a new project takes about a minute.
+
+## Actions
 
 | Action | What it does |
 |---|---|
-| `setup` | Opens a popup that asks for the three model ids, runs the installer and then the doctor |
-| `init` | Sets up the board in the project of the focused pane, after asking |
-| `doctor` | Shows the doctor's report for this machine and project |
-| `board` | Opens a live, read-only view of the project's task board. `q` closes it |
-| `coordinator` | Starts a coordinator agent beside the focused pane, one per workspace |
+| `formic.kit.setup` | Opens a popup that asks for the three model ids, runs the installer and then the check |
+| `formic.kit.init` | Sets up the board in the project of the focused pane, after asking |
+| `formic.kit.doctor` | Shows the check for this machine and project |
+| `formic.kit.board` | Opens a live, read-only view of the project's task board. `q` closes it |
+| `formic.kit.coordinator` | Starts a coordinator agent beside the focused pane, one per workspace |
+
+To bind one to a key:
 
 ```toml
 # ~/.config/herdr/config.toml
@@ -50,7 +66,31 @@ command = "formic.kit.board"
 description = "formic board"
 ```
 
-A startup hook points the skill links at the plugin's current folder after an install or update. It does nothing until `setup` has been run once.
+## Update and remove
+
+`herdr plugin update` fetches the latest version. herdr puts each version in a new folder; the kit points its skill links at the new one the next time you run any of its actions or herdr starts.
+
+To remove it, run `install.sh uninstall` from the plugin folder first, then unregister the plugin:
+
+```bash
+bash "$(herdr plugin list --plugin formic.kit --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["plugins"][0]["plugin_root"])')/install.sh" uninstall
+herdr plugin uninstall formic.kit
+```
+
+Projects and their `.formic` folders are not touched.
+
+## Without the plugin
+
+The same installer works from a clone:
+
+```bash
+git clone https://github.com/rickywo/formic-kit && cd formic-kit
+./install.sh --coordinator-model <provider/model> --sonnet-model <provider/model> --haiku-model <provider/model>
+./install.sh doctor
+./install.sh init <project>
+```
+
+For development, `herdr plugin link <path-to-clone>` registers the clone as the plugin, so edits take effect at once.
 
 ## Layout
 
@@ -69,6 +109,6 @@ A startup hook points the skill links at the plugin's current folder after an in
 | `templates/AGENTS-section.md` | Section to add to a project's `AGENTS.md` |
 | `tests/test_board.py` | Tests for `board.py`: `python3 tests/test_board.py` |
 
-## Requirements
+## Licence
 
-opencode, herdr with its opencode integration, Python 3.8+, git, and two opencode agents named `worker-haiku` and `worker-sonnet`.
+MIT. See `LICENSE`.

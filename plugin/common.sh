@@ -27,6 +27,19 @@ project_root() {
   git -C "$dir" rev-parse --show-toplevel 2>/dev/null || (cd "$dir" && pwd)
 }
 
+# After a plugin update the kit lives in a new folder. Point the skill links and agent
+# profiles at it before doing anything else. Quiet when nothing moved or setup has not
+# been run; never stops the caller.
+relink_if_moved() {
+  local state="${FORMIC_KIT_STATE_DIR:-$HOME/.config/formic-kit}/config" recorded
+  [ -f "$state" ] || return 0
+  recorded="$(awk -F= '$1 == "kit_dir" { print substr($0, 9) }' "$state")"
+  [ "$recorded" = "$KIT_DIR" ] && return 0
+  echo "formic-kit: kit moved from $recorded to $KIT_DIR; relinking" >&2
+  bash "$KIT_DIR/install.sh" install >&2 || echo "formic-kit: relink failed; run the setup action" >&2
+  return 0
+}
+
 pause() {
   printf '\n%s' "Press Enter to close."
   read -r _ || true
