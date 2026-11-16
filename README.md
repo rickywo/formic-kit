@@ -45,6 +45,8 @@ From a herdr pane inside the project (a git repository):
 
 The first opencode start in a new project takes about a minute.
 
+For a full example, from describing a feature to approving it, see [docs/walkthrough.md](docs/walkthrough.md).
+
 ## Actions
 
 | Action | What it does |
@@ -107,6 +109,7 @@ For development, `herdr plugin link <path-to-clone>` registers the clone as the 
 | `agents/*.md.tmpl` | Agent profiles, filled in with this machine's model ids at install |
 | `templates/project.json` | Per-project settings: check commands, forbidden patterns, shared files, limits |
 | `templates/AGENTS-section.md` | Section to add to a project's `AGENTS.md` |
+| `docs/walkthrough.md` | A full example, from describing a feature to approving it |
 | `tests/test_board.py` | Tests for `board.py`: `python3 tests/test_board.py` |
 
 ## Licence
