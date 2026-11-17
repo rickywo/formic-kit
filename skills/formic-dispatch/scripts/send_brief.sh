@@ -83,12 +83,13 @@ except (ValueError, KeyError, TypeError):
 print(a.get("agent_status") or "")'
 }
 
-# Exit 0 when the transcript of session $1 has a `user` entry with the brief.
+# Exit 0 when the transcript of session $1 has a `user` entry with the brief, either as
+# the whole entry or inside one Claude Code <pasted_content id="..."> envelope.
 # The transcript lookup and the user-entry parsing must stay in step with find_transcript
 # and user_text in worker_report.py.
 brief_delivered() {
   python3 - "$1" "$BRIEF" <<'PY'
-import glob, json, os, sys
+import glob, json, os, re, sys
 sess, brief_file = sys.argv[1], sys.argv[2]
 brief = " ".join(open(brief_file, encoding="utf-8", errors="replace").read().split())
 root = (os.environ.get("FORMIC_CLAUDE_DIR") or os.environ.get("CLAUDE_CONFIG_DIR")
@@ -116,6 +117,12 @@ with open(path, encoding="utf-8", errors="replace") as f:
             text = " ".join(t for t in parts if isinstance(t, str))
         else:
             continue
+        # Claude Code stores a pasted prompt as <pasted_content id="X">...</pasted_content id="X">.
+        # Compare only the inner text, and only when the whole entry is one such envelope.
+        m = re.fullmatch(r'\s*<pasted_content id="([^"]+)">(.*)</pasted_content id="\1">\s*',
+                         text, re.S)
+        if m:
+            text = m.group(2)
         text = " ".join(text.split())
         if text and (text == brief or text.startswith(prefix)):
             sys.exit(0)

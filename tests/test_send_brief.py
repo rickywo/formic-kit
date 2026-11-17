@@ -233,6 +233,44 @@ class SendBriefCase(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIs(json.loads(r.stdout)["delivered"], True)
 
+    # Claude Code 2.1.x stores a pasted prompt inside a <pasted_content id="..."> envelope.
+    @staticmethod
+    def pasted(text, open_id="6da3", close_id=None):
+        close_id = open_id if close_id is None else close_id
+        return (f'\n\n<pasted_content id="{open_id}">\n{text}'
+                f'</pasted_content id="{close_id}">\n')
+
+    def test_claude_pasted_content_brief_is_delivered(self):
+        # A real brief starts with the step's slash word, as in the observed transcript.
+        self.brief.write_text("/formic-brief\n" + BRIEF)
+        self.add_entry(self.pasted("/formic-brief\n" + BRIEF))
+        r = self.run_script()
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIs(json.loads(r.stdout)["delivered"], True)
+        self.assertEqual(self.send_keys(), [])
+
+    def test_claude_pasted_content_exact_brief_is_delivered(self):
+        self.add_entry([{"type": "text", "text": self.pasted(BRIEF)}])
+        r = self.run_script()
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIs(json.loads(r.stdout)["delivered"], True)
+        self.assertEqual(self.send_keys(), [])
+
+    def test_claude_pasted_content_unrelated_text_is_not_the_brief(self):
+        self.add_entry(self.pasted("/formic-brief\nsome other prompt\n"))
+        self.set_prompt("hang")
+        r = self.run_script()
+        self.assertEqual(r.returncode, 3, r.stderr)
+        self.assertIs(json.loads(r.stdout)["delivered"], False)
+
+    def test_claude_pasted_content_with_mismatched_ids_is_not_the_brief(self):
+        self.brief.write_text("/formic-brief\n" + BRIEF)
+        self.add_entry(self.pasted("/formic-brief\n" + BRIEF, open_id="6da3", close_id="9f01"))
+        self.set_prompt("hang")
+        r = self.run_script()
+        self.assertEqual(r.returncode, 3, r.stderr)
+        self.assertIs(json.loads(r.stdout)["delivered"], False)
+
     def test_claude_tool_result_list_is_not_the_brief(self):
         self.add_entry([{"type": "tool_result", "tool_use_id": "t1", "content": BRIEF}])
         self.set_prompt("hang")
