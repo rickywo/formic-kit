@@ -351,6 +351,13 @@ class TestOpsAgent(InstallTestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(mine.read_text(), "my own ops agent\n")
 
+    def test_coordinator_is_not_found_by_one_fixed_name(self):
+        for suffix in (".md.tmpl", ".claude.md.tmpl"):
+            text = (ROOT / "agents" / ("formic-ops" + suffix)).read_text()
+            self.assertNotIn("name starts with", text, suffix)
+            self.assertIn("whose name contains `coordinator`", text, suffix)
+            self.assertIn("ask which one is the coordinator", text, suffix)
+
     def test_templates_are_portable(self):
         for suffix in (".md.tmpl", ".claude.md.tmpl"):
             text = (ROOT / "agents" / ("formic-ops" + suffix)).read_text()
