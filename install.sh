@@ -27,6 +27,7 @@ CLAUDE_DIR=""
 CLAUDE_COORDINATOR_MODEL=""
 CLAUDE_SONNET_MODEL=""
 CLAUDE_HAIKU_MODEL=""
+PERMISSIONS=""
 # Model flags are held here until the runtime is known (it may come from the saved state).
 FLAG_COORDINATOR_MODEL=""
 FLAG_SONNET_MODEL=""
@@ -46,13 +47,15 @@ Usage:
   ./install.sh [install] [--runtime opencode|claude] [--coordinator-model ID]
                          [--sonnet-model ID] [--haiku-model ID]
                          [--config-dir DIR] [--claude-dir DIR] [--force]
+                         [--permissions ask|auto]
   ./install.sh init [PROJECT_DIR] [--local-skills]
   ./install.sh doctor [PROJECT_DIR]
   ./install.sh uninstall
 
 install
-  Links every kit skill into <config-dir>/skills and writes three agent profiles into
-  <config-dir>/agents: worker-haiku, worker-sonnet and formic-coordinator.
+  Links every kit skill into <config-dir>/skills and writes four agent profiles into
+  <config-dir>/agents: worker-haiku, worker-sonnet, formic-coordinator and formic-ops.
+  formic-ops is a work assistant across projects; it uses the coordinator model.
   Model ids use opencode's provider/model form; list them with 'opencode models'.
   The ids are remembered, so later runs need no flags.
   A file or link that install did not create is left alone unless --force is given;
@@ -63,7 +66,7 @@ install
   --runtime RT       which tool runs the coordinator and the workers: opencode (the default)
                      or claude (Claude Code). The choice is remembered, so later runs need
                      no flag. With claude, install links the skills into <claude-dir>/skills
-                     and writes the same three agents into <claude-dir>/agents.
+                     and writes the same four agents into <claude-dir>/agents.
   --claude-dir DIR   Where the kit installs skills and agents for Claude Code (default:
                      ~/.claude); remembered. This can be a project's .claude folder.
                      It is not where transcripts are read: the dispatch scripts look
@@ -74,6 +77,14 @@ install
   switching runtime does not lose the other set. They are not written into the Claude Code
   agent files; the coordinator passes them to Claude Code with --model. Workers need
   --sonnet-model and --haiku-model; --coordinator-model is optional.
+
+  --permissions MODE How the coordinator and the workers are started: ask (the default) or
+                     auto. The choice is remembered. With ask, a permission prompt in a
+                     worker's pane is shown to you and nothing is answered for you. With auto,
+                     the kit starts opencode with --auto and Claude Code with
+                     --dangerously-skip-permissions, so the agents run commands, edit files
+                     and reach outside the project without asking. Use auto only where that
+                     is acceptable. Pass --permissions ask to go back.
 
 init
   Creates .formic/board.json and .formic/project.json in the project if they are absent
@@ -115,6 +126,7 @@ load_state() {
       claude_coordinator_model) [ -n "$CLAUDE_COORDINATOR_MODEL" ] || CLAUDE_COORDINATOR_MODEL="$value" ;;
       claude_sonnet_model)      [ -n "$CLAUDE_SONNET_MODEL" ]      || CLAUDE_SONNET_MODEL="$value" ;;
       claude_haiku_model)       [ -n "$CLAUDE_HAIKU_MODEL" ]       || CLAUDE_HAIKU_MODEL="$value" ;;
+      permissions)       [ -n "$PERMISSIONS" ]       || PERMISSIONS="$value" ;;
     esac
   done < "$STATE_FILE"
 }
@@ -127,6 +139,8 @@ resolve_settings() {
     opencode|claude) ;;
     *) die "--runtime must be opencode or claude, not '$RUNTIME'" ;;
   esac
+  # Anything but auto, including a missing or damaged saved value, means ask.
+  [ "$PERMISSIONS" = "auto" ] || PERMISSIONS="ask"
   if [ "$RUNTIME" = "claude" ]; then
     if [ -n "$FLAG_COORDINATOR_MODEL" ]; then CLAUDE_COORDINATOR_MODEL="$FLAG_COORDINATOR_MODEL"; fi
     if [ -n "$FLAG_SONNET_MODEL" ]; then CLAUDE_SONNET_MODEL="$FLAG_SONNET_MODEL"; fi
@@ -150,6 +164,8 @@ save_state() {
     if [ -n "$CLAUDE_COORDINATOR_MODEL" ]; then printf 'claude_coordinator_model=%s\n' "$CLAUDE_COORDINATOR_MODEL"; fi
     if [ -n "$CLAUDE_SONNET_MODEL" ]; then printf 'claude_sonnet_model=%s\n' "$CLAUDE_SONNET_MODEL"; fi
     if [ -n "$CLAUDE_HAIKU_MODEL" ]; then printf 'claude_haiku_model=%s\n' "$CLAUDE_HAIKU_MODEL"; fi
+    # Written only for auto, so the settings file of an install that never opted in is unchanged.
+    if [ "$PERMISSIONS" = "auto" ]; then printf 'permissions=auto\n'; fi
     printf 'kit_dir=%s\n' "$KIT_DIR"
     printf 'kit_version=%s\n' "$KIT_VERSION"
   } > "$STATE_FILE"
@@ -210,7 +226,7 @@ write_agent() {
     if [ -e "$dest" ]; then
       say "agent $name: left as it is (no model given)"
     else
-      if [ "$name" = "formic-coordinator" ]; then
+      if [ "$name" = "formic-coordinator" ] || [ "$name" = "formic-ops" ]; then
         say "agent $name: not written (optional). Pass $flag <provider/model> to add it"
       else
         warn "agent $name: not written. Pass $flag <provider/model>"
@@ -253,6 +269,16 @@ write_claude_agent() {
   record "$dest"
 }
 
+# Says nothing for ask, so the output of an install that never opted in is unchanged.
+say_permissions() {
+  [ "$PERMISSIONS" = "auto" ] || return 0
+  if [ "$RUNTIME" = "claude" ]; then
+    say "permissions: auto. The coordinator and the workers start with --dangerously-skip-permissions"
+  else
+    say "permissions: auto. The coordinator and the workers start with --auto"
+  fi
+}
+
 cmd_install_claude() {
   [ -n "$CLAUDE_DIR" ] || CLAUDE_DIR="$HOME/.claude"
   say "formic-kit $KIT_VERSION -> $CLAUDE_DIR (Claude Code)"
@@ -268,6 +294,7 @@ cmd_install_claude() {
   write_claude_agent worker-haiku
   write_claude_agent worker-sonnet
   write_claude_agent formic-coordinator
+  write_claude_agent formic-ops
   if [ -z "$CLAUDE_SONNET_MODEL" ]; then
     warn "claude sonnet model id is not set. Pass --sonnet-model <id>"
     MISSING_AGENTS=1
@@ -280,6 +307,7 @@ cmd_install_claude() {
     say "note: no coordinator model id; the coordinator starts on Claude Code's default model. Pass --coordinator-model <id> to set one"
   fi
   save_state
+  say_permissions
   say ""
   if [ "$MISSING_AGENTS" -eq 1 ]; then
     say "Some model ids are missing. Rerun with the model flags above, then run: ./install.sh doctor"
@@ -299,7 +327,9 @@ cmd_install() {
   write_agent worker-haiku "$HAIKU_MODEL" --haiku-model
   write_agent worker-sonnet "$SONNET_MODEL" --sonnet-model
   write_agent formic-coordinator "$COORDINATOR_MODEL" --coordinator-model
+  write_agent formic-ops "$COORDINATOR_MODEL" --coordinator-model
   save_state
+  say_permissions
   say ""
   if [ "$MISSING_AGENTS" -eq 1 ]; then
     say "Some agents are missing. Rerun with the model flags above, then run: ./install.sh doctor"
@@ -405,6 +435,12 @@ cmd_doctor() {
     if [ "${HERDR_ENV:-}" = 1 ]; then ok "running inside herdr"; else note "not inside a herdr pane; the coordinator must be started inside herdr"; fi
   fi
 
+  if [ "$PERMISSIONS" = "auto" ]; then
+    say "Permissions"
+    if [ "$RUNTIME" = "claude" ]; then note "auto: agents start with --dangerously-skip-permissions and are not asked before they act"
+    else note "auto: agents start with --auto and are not asked before they act"; fi
+  fi
+
   say "Skills"
   local total=0 linked=0 d dest
   for d in "$KIT_DIR"/skills/*/; do
@@ -443,6 +479,13 @@ cmd_doctor() {
     else
       note "formic-coordinator agent not installed (optional): run ./install.sh --runtime claude"
     fi
+    cf="$CLAUDE_DIR/agents/formic-ops.md"
+    if [ -f "$cf" ]; then
+      ok "formic-ops"
+      grep -qF "$MARKER" "$cf" || note "formic-ops is your own agent file, not the kit's"
+    else
+      note "formic-ops agent not installed (optional): run ./install.sh --runtime claude"
+    fi
 
     say "Models"
     if [ -z "$CLAUDE_HAIKU_MODEL" ]; then bad "claude haiku model id is not saved; run ./install.sh --runtime claude --haiku-model <id>"
@@ -471,6 +514,8 @@ cmd_doctor() {
       done
       if grep -q "^formic-coordinator " <<< "$list"; then ok "formic-coordinator"
       else note "formic-coordinator agent not installed (optional): pass --coordinator-model to install"; fi
+      if grep -q "^formic-ops " <<< "$list"; then ok "formic-ops"
+      else note "formic-ops agent not installed (optional): pass --coordinator-model to install"; fi
     fi
   fi
 
@@ -560,6 +605,12 @@ while [ $# -gt 0 ]; do
                          case "$2" in
                            opencode|claude) RUNTIME="$2" ;;
                            *) die "--runtime must be opencode or claude, not '$2'" ;;
+                         esac
+                         shift 2 ;;
+    --permissions)       [ $# -ge 2 ] || die "$1 needs a value"
+                         case "$2" in
+                           ask|auto) PERMISSIONS="$2" ;;
+                           *) die "--permissions must be ask or auto, not '$2'" ;;
                          esac
                          shift 2 ;;
     --force)             FORCE=1; shift ;;

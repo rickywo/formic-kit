@@ -36,14 +36,14 @@ done
 
 echo
 if [ "$runtime" = "claude" ]; then
-  echo "This links the kit's skills into ~/.claude/skills and writes three agent files"
-  echo "into ~/.claude/agents: formic-coordinator, worker-sonnet, worker-haiku."
+  echo "This links the kit's skills into ~/.claude/skills and writes four agent files"
+  echo "into ~/.claude/agents: formic-coordinator, formic-ops, worker-sonnet, worker-haiku."
   echo "Claude Code model ids have no provider prefix (the ids 'claude --model' accepts)."
   echo "Workers need the mid-tier and low-cost ids; the coordinator id is optional."
   coordinator_key=claude_coordinator_model; sonnet_key=claude_sonnet_model; haiku_key=claude_haiku_model
 else
-  echo "This links the kit's skills into ~/.config/opencode/skills and writes three agent"
-  echo "profiles into ~/.config/opencode/agents: formic-coordinator, worker-sonnet, worker-haiku."
+  echo "This links the kit's skills into ~/.config/opencode/skills and writes four agent"
+  echo "profiles into ~/.config/opencode/agents: formic-coordinator, formic-ops, worker-sonnet, worker-haiku."
   echo "Model ids use opencode's provider/model form. 'opencode models' lists them."
   coordinator_key=coordinator_model; sonnet_key=sonnet_model; haiku_key=haiku_model
 fi

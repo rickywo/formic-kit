@@ -39,13 +39,13 @@ Setup asks which runtime to use (`opencode` or `claude`), then for three model i
 **opencode.** Model ids use opencode's `provider/model` form (`opencode models` lists them). Setup:
 
 - links the kit's skills into `~/.config/opencode/skills`;
-- writes three agent profiles into `~/.config/opencode/agents`: `formic-coordinator`, `worker-sonnet` and `worker-haiku`;
+- writes four agent profiles into `~/.config/opencode/agents`: `formic-coordinator`, `formic-ops`, `worker-sonnet` and `worker-haiku`;
 - runs a check of the installation.
 
 **Claude Code.** Model ids have no provider prefix, unlike opencode's `provider/model`: use the ids that `claude --model` accepts. Setup:
 
 - links the kit's skills into `<claude-dir>/skills`; `<claude-dir>` is `~/.claude` unless you pass `--claude-dir`, and it is remembered;
-- writes the same three agent files into `<claude-dir>/agents`;
+- writes the same four agent files into `<claude-dir>/agents`;
 - runs a check of the installation.
 
 The Claude Code agent files carry no model. The coordinator passes the saved id to Claude Code with `--model` each time it starts an agent. Workers need the mid-tier and low-cost ids; the coordinator id is optional, and without it the coordinator uses Claude Code's own default.
@@ -70,10 +70,30 @@ For a full example, from describing a feature to approving it, see [docs/walkthr
 
 ## Claude Code specifics
 
-- **Permissions.** Workers start with `--permission-mode acceptEdits` and an allow-list of the project's check commands (from `.formic/project.json`) and read-only git commands. File edits and those commands run without a prompt. Anything else shows a permission prompt in the worker's pane. The coordinator shows you the prompt and asks whether to allow it once or reject it; it never answers on its own. The kit never uses `--dangerously-skip-permissions`.
+- **Permissions.** Workers start with `--permission-mode acceptEdits` and an allow-list of the project's check commands (from `.formic/project.json`) and read-only git commands. File edits and those commands run without a prompt. Anything else shows a permission prompt in the worker's pane. The coordinator shows you the prompt and asks whether to allow it once or reject it; it never answers on its own. The kit does not use `--dangerously-skip-permissions` unless you turn on auto permissions (below).
 - **Startup dialogs.** Besides the folder-trust question, Claude Code can show other one-off dialogs when it starts, such as an offer to switch model. The coordinator shows them to you and sends the key you choose.
 - **Transcripts.** The dispatch scripts read the worker's session transcript from `$FORMIC_CLAUDE_DIR` if it is set, else `$CLAUDE_CONFIG_DIR` if it is set, else `~/.claude`. That is where Claude Code itself writes transcripts, which is not always the folder you gave to `install.sh --claude-dir` (for example a project's `.claude`). Set `FORMIC_CLAUDE_DIR` only when the workers' Claude Code config folder differs from what the environment already gives.
-- **Your settings.** The kit never changes your Claude Code settings (`~/.claude/settings.json`). It only adds skill links and three agent files, and removes only those on uninstall.
+- **Your settings.** The kit never changes your Claude Code settings (`~/.claude/settings.json`). It only adds skill links and four agent files, and removes only those on uninstall.
+
+## Formic-Ops: one assistant across projects (optional)
+
+`formic-ops` is a primary agent you can start in any folder, with `opencode --agent formic-ops` or `claude --agent formic-ops` inside herdr. It takes in a request, works out which project it belongs to, checks the live checkout, and hands board work to that project's running coordinator with `herdr agent prompt`. It reports what each board shows.
+
+It never writes a board, never implements project changes, and never commits or pushes unless you explicitly authorize it. If a project has no running coordinator, it asks you to start one.
+
+With opencode it runs on the coordinator model and is written only when a coordinator model is set. An agent file of the same name that you created yourself is left alone.
+
+## Auto permissions (optional)
+
+By default nothing is approved for you: a permission prompt in a worker's pane is shown to you by the coordinator, and you decide. To run without prompts, opt in once per machine:
+
+```bash
+./install.sh --permissions auto
+```
+
+The choice is saved as `permissions=auto` in `~/.config/formic-kit/config`. From then on the coordinator action and the coordinator's worker starts add `--auto` with opencode and `--dangerously-skip-permissions` with Claude Code. Sessions that are already running keep the mode they started with.
+
+In this mode the agents run shell commands, edit files and read or write outside the project without asking. Use it only on a machine and in projects where that is acceptable. The worker profiles still deny starting other agents under opencode, and startup dialogs (folder trust, and Claude Code's one-time confirmation of this mode) are still yours to answer. `./install.sh --permissions ask` turns it off.
 
 ## Actions
 

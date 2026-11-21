@@ -18,15 +18,21 @@ fi
 
 pane="$("$HERDR" pane split ${HERDR_PANE_ID:+--pane "$HERDR_PANE_ID"} --direction right --cwd "$project" \
   | python3 -c 'import json, sys; print(json.load(sys.stdin)["result"]["pane"]["pane_id"])')"
+# permissions=auto in the settings is the user's opt-in to start agents without permission prompts.
+auto=0
+[ "$(saved_setting permissions)" = "auto" ] && auto=1
 sleep 1
 case "$(saved_runtime)" in
   opencode)
-    "$HERDR" agent start "$name" --kind opencode --pane "$pane" --timeout 120000 -- --agent formic-coordinator
+    args=(--agent formic-coordinator)
+    [ "$auto" -eq 0 ] || args+=(--auto)
+    "$HERDR" agent start "$name" --kind opencode --pane "$pane" --timeout 120000 -- "${args[@]}"
     ;;
   claude)
     args=(--agent formic-coordinator)
     model="$(saved_setting claude_coordinator_model)"
     [ -z "$model" ] || args+=(--model "$model")
+    [ "$auto" -eq 0 ] || args+=(--dangerously-skip-permissions)
     out="$(mktemp)"
     status=0
     "$HERDR" agent start "$name" --kind claude --pane "$pane" --timeout 120000 -- "${args[@]}" > "$out" 2>&1 || status=$?

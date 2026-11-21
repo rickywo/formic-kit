@@ -28,7 +28,24 @@ When the runtime is `claude`, read these lines from the same file the same way:
 
 Transcripts: Claude Code writes them under its own config folder, which `send_brief.sh` and `worker_report.py` look up as `$FORMIC_CLAUDE_DIR` if set, else `$CLAUDE_CONFIG_DIR` if set, else `~/.claude`, in `projects/*/<session-id>.jsonl`. They never use `claude_dir`. You need to set `FORMIC_CLAUDE_DIR` (for the scripts you run) only when the workers' Claude Code config folder differs from what those two lookups give from your environment.
 
-From then on, follow the `opencode` or the `claude` variant of every tool-specific step. Where a step has no label, it is the same for both.
+## Which permission mode
+
+The same file holds the user's choice of how workers are started. Read it once at start-up, with the runtime:
+
+```bash
+grep '^permissions=' "${FORMIC_KIT_STATE_DIR:-$HOME/.config/formic-kit}/config"
+```
+
+The line is `permissions=auto` or it is absent. Only the exact value `auto` means auto. A missing file, a missing line, or any other value means `ask`.
+
+| Mode | How workers start | Permission prompts |
+|---|---|---|
+| `ask` (the default) | With the tool's normal permission checks | A prompt appears in the worker's pane and you relay it to the user |
+| `auto` | opencode with `--auto`; Claude Code with `--dangerously-skip-permissions` | The worker is not asked before it runs commands, edits files or reaches outside the project |
+
+`auto` is a setting the user chose with `install.sh --permissions auto`. Never choose it yourself, never add either flag when the mode is `ask`, and never write the setting. If the user asks for it in conversation, tell them to run `install.sh --permissions auto`.
+
+From then on, follow the `opencode` or the `claude` variant of every tool-specific step, and the `ask` or `auto` variant where a step has one. Where a step has no label, it is the same for both.
 
 ## Before the first dispatch
 
@@ -148,11 +165,27 @@ Read the new pane id from `.result.pane.pane_id`. Never guess a pane id.
 herdr agent start t12-plan --kind opencode --pane <pane-id> -- --agent worker-sonnet
 ```
 
+In `auto` mode add `--auto` at the end:
+
+```bash
+herdr agent start t12-plan --kind opencode --pane <pane-id> -- --agent worker-sonnet --auto
+```
+
+`--auto` approves every permission the agent profile does not deny. The worker profiles still deny starting other agents.
+
 If it returns `agent_not_ready`, read the pane (`herdr agent read t12-plan --source visible`) to see why before doing anything else.
 
 **claude:**
 
-First get the allow-list. Run this in the project root:
+In `auto` mode, skip the allow-list and start the worker like this:
+
+```bash
+herdr agent start t12-plan --kind claude --pane <pane-id> -- --agent worker-sonnet --model <claude_sonnet_model> --dangerously-skip-permissions
+```
+
+Use `<claude_haiku_model>` with `worker-haiku`. Do not pass `--permission-mode` or `--allowedTools` with it. The first time, Claude Code can show a dialog asking the user to accept this mode; treat it as a startup dialog (see "Confirm it is ready"). Then go to "Confirm it is ready".
+
+In `ask` mode, first get the allow-list. Run this in the project root:
 
 ```bash
 python3 <this skill's folder>/scripts/allowed_tools.py
@@ -172,7 +205,7 @@ Why these flags:
 - `--permission-mode acceptEdits` is passed on the command line because the permission mode set in the agent file is not applied.
 - `--allowedTools` lets the project's check commands and read-only git commands run without a prompt.
 
-Never use `--dangerously-skip-permissions`. Anything outside the allow-list and file edits will show a permission prompt in the worker's pane. You relay that prompt to the user (see "Permission prompts").
+Never use `--dangerously-skip-permissions` in `ask` mode. Anything outside the allow-list and file edits will show a permission prompt in the worker's pane. You relay that prompt to the user (see "Permission prompts").
 
 If `herdr agent start` returns `agent_not_ready`, read the pane (`herdr agent read t12-plan --source visible`). It usually means a startup dialog is showing. See "Confirm it is ready" below.
 
@@ -297,6 +330,8 @@ board agent t-12 --clear
 Close only panes you created in this session. Close the pane whatever the verdict was, once you have read the report. Leave it open only if you are about to show it to the user.
 
 ## Permission prompts
+
+In `auto` mode workers should not show permission prompts. If one appears anyway, or a startup dialog does, handle it exactly as below: the mode changes how workers start, not who answers a dialog.
 
 `blocked` means a dialog is showing in the worker's pane, usually because the worker tried to touch something outside the project or outside the allow-list. The dialog depends on the runtime. A startup dialog (for example "Do you trust this folder?") is not a permission prompt, but the same rules apply: see "Confirm it is ready".
 

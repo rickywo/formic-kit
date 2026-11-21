@@ -127,6 +127,30 @@ class TestCoordinator(PluginCase):
         self.assertNotIn("--dangerously-skip-permissions", words)
         self.assert_no_keys_sent()
 
+    def test_opencode_auto_permissions_adds_auto(self):
+        self.save_config(runtime="opencode", permissions="auto")
+        r = self.run_script("coordinator.sh")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(self.start_line(), self.OPENCODE_LINE + " --auto")
+        self.assert_no_keys_sent()
+
+    def test_claude_auto_permissions_adds_skip_flag(self):
+        self.save_config(runtime="claude", claude_coordinator_model="coord-id", permissions="auto")
+        r = self.run_script("coordinator.sh")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(self.start_line(), "agent start coordinator-w1 --kind claude --pane p1 "
+                                            "--timeout 120000 -- --agent formic-coordinator "
+                                            "--model coord-id --dangerously-skip-permissions")
+        self.assert_no_keys_sent()
+
+    def test_other_permissions_values_add_no_flag(self):
+        for value in ("ask", "yes", "AUTO", ""):
+            self.log.unlink(missing_ok=True)
+            self.save_config(runtime="opencode", permissions=value)
+            r = self.run_script("coordinator.sh")
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertEqual(self.start_line(), self.OPENCODE_LINE)
+
     def test_claude_without_coordinator_model_has_no_model_flag(self):
         self.save_config(runtime="claude", claude_sonnet_model="s", claude_haiku_model="h")
         r = self.run_script("coordinator.sh")
